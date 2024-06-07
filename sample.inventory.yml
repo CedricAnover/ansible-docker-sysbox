@@ -1,0 +1,7 @@
+ungrouped:
+  hosts:
+    ansible_container:
+      ansible_port: 22
+      ansible_host: <container-ip>
+      ansible_connection: ssh
+      ansible_user: <username>

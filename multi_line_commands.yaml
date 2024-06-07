@@ -1,0 +1,21 @@
+---
+- name: Run multi-line bash commands
+  hosts: ansible_container
+  become: yes  # Run commands with elevated privileges (sudo)
+
+  tasks:
+    - name: Execute multi-line bash commands
+      shell: |
+        echo "Hello, this is a multi-line"
+        echo "bash script executed by Ansible."
+        echo "This script is running on {{ ansible_hostname }}."
+
+        echo "Test: Creating busybox container ..."
+        docker run -t -d busybox
+
+      # Register the output of the command
+      register: command_output
+
+    - name: Display command output
+      debug:
+        msg: "{{ command_output.stdout_lines }}"
