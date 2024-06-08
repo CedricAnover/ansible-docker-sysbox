@@ -27,6 +27,8 @@ RUN adduser --disabled-password --gecos "" $THE_USER \
     && echo "$THE_USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$THE_USER-nopasswd \
     && chmod 0440 /etc/sudoers.d/$THE_USER-nopasswd
 
+RUN echo "admin:$THE_PASSWD" | chpasswd
+
 # Install Docker
 RUN curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh \
     && usermod -aG docker $THE_USER
