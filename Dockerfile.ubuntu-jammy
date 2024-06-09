@@ -1,0 +1,59 @@
+# Disclaimer: The following content is not my original work. 
+# I have modified it for specific purpose. All credit goes to https://github.com/nestybox
+
+# References:
+#   - https://github.com/nestybox
+#   - https://hub.docker.com/u/nestybox
+#   - https://github.com/nestybox/dockerfiles
+#   - https://github.com/nestybox/dockerfiles/blob/master/ubuntu-jammy-systemd-docker/Dockerfile
+
+# Ubuntu Jammy + Systemd + Sshd + Docker.
+
+# Username: admin
+# Password: $NEW_PASSWD
+
+# Build Command:
+# docker build -f Dockerfile.ubuntu-jammy -t <image-name> --build-arg NEW_PASSWD=<password> .
+
+# Run Command:
+# docker run --runtime=sysbox-runc -it --rm -P --hostname=<container-hostname> --name=<container-name> <image-name>
+
+FROM ghcr.io/nestybox/ubuntu-jammy-systemd:latest
+
+ARG NEW_PASSWD
+
+# Install Docker
+RUN apt-get update && apt-get install -y curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh \
+    # Add user "admin" to the Docker group
+    && usermod -a -G docker admin
+ADD https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker /etc/bash_completion.d/docker.sh
+
+# Install Sshd
+RUN apt-get update && apt-get install --no-install-recommends -y openssh-server \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir /home/admin/.ssh \
+    && chown admin:admin /home/admin/.ssh
+
+# Install Python3
+# Update package lists and install necessary packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Remove existing pip symlink if it exists
+RUN rm -f /usr/bin/pip
+
+# Make some useful symlinks that are expected to exist
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
+
+RUN echo "admin:$NEW_PASSWD" | chpasswd
+
+EXPOSE 22
+
+# Set systemd as entrypoint.
+ENTRYPOINT [ "/sbin/init", "--log-level=err" ]
